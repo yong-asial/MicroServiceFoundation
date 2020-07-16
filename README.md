@@ -221,3 +221,216 @@ In a microservices architecture, you often leverage an API proxy to hide your se
 - But when it comes to posting data to a service, doing that asynchronously through some intermediate service removes any dependency between caller and recieving services -> Use Queue System
 
 ![Queue System](./images/queueSystem.png)
+
+# Design Patterns
+
+## Service Types
+
+- Data Service: frequently bound by data domain - Product Data Service
+- Business Service: Order Business Service (consist of product, inventory, order, payment...)
+- Translation Service: Abstraction for 3rd party service - Mail Service, Log Service. Easier when changing vendor or version without changing the underlying services
+- Edge Service: External service to user, web view, mobile content, or custom payload
+
+## Decomposition Patterns
+
+### Domain Based
+
+![Domain Based](./images/Domain.png)
+
+- Data Domains: low level of decompositions, the most efficient way
+- Focus on the data pattern (the accessing data pattern) not the underlying schema
+
+- Start with the model, not the datastore
+- Define actions need to perform on the model
+- Build API based on the actions
+
+### Business Process Based
+
+![Business Proces](./images/BusinessProcess.png)
+
+- Identify Process
+- Identify Domain
+- Define API
+- Wire Service
+
+### Atomic Transactoin Based
+
+- Guarantee atomicity, consistency, isolation, durability transatctions across domain
+- Provide failure domains and rollbacks
+- Force blocking until committed
+- Don use distributed transactions or data domain!
+- Domains must be in shared database
+- Strategies for fast fail and rollback
+
+## Decomposition Strategies
+
+### Strangler Pattern
+
+![Strangler Pattern](./images/stranglerPattern1.png)
+
+![Strangler Pattern](./images/stranglerPattern2.png)
+
+![Strangler Pattern](./images/stranglerPattern3.png)
+
+![Strangler Pattern](./images/stranglerPattern4.png)
+
+![Strangler Pattern](./images/stranglerPattern5.png)
+
+- Break a monolith up by "strangling" the dependency on it. Start service pieice by piece, point to a new service and depreate the old service
+- Top Down: API -> Datastore
+- Bottom Up: Datastore -> API
+
+### Sidecar Pattern
+
+![Sidecar](./images/sidecarPattern.png)
+
+- Used to offload processing
+- Removing repetitive code across Services
+- Used for loggin, monitoring, network services can be offloaded to a separate module
+
+- Determine the process
+- Build the sidecar
+- Schedule it to deploy with the appropriate services. Deploy along with the parent service
+
+## Integration Patterns
+
+### API Gateway patterns
+
+- Problems: Client ability to call any service can create chaos
+- Gateway is to create a buffer, provides a facade/proxy
+- Single layer that proxies, mutates, or limits calls
+- Can become a sinple point of failure
+
+#### Mutation Behaviours
+
+- Can simply proxy: Backend call, restrict, access, buffer, etc
+- Can decorate payload: headers, ... in a consistent way
+- Can aggregate: call underline call and aggregate the data here (but don apply business logic here!)
+- Can limit access: limited data for limited client (2G, 3G)
+- Movement buffer
+
+#### Stratey
+
+- Define contracts
+- Expose APIs for thos contracts, client focused
+- Adhere to strict version control and passive changes only
+- Implement the gatway to call your services and your clients to call the gateway
+
+### Process Aggregator Pattern
+
+- Problem: You have several business process that must be called together and have a composite payload
+- Aggregator provides clients a single API to call
+- Subset of Gateway Pattern
+
+#### Cons
+
+- Can introduce its own processing logic
+- Can cause long blocking calls
+
+#### Design
+
+- Determine the business process
+- Determine the processing rules
+- Design a consolidated model
+- Design an API for the actions on that model
+- Wire the service and implement the internal processing
+
+### Edge Pattern
+
+- Ingres Pattern
+- Subset of Gateway Pattern
+- Clients need special business logic or payload (Mobile, Rakuten, Hitachi)
+
+#### Design Edge Pattern
+
+- Identify clients
+- Build contracts
+- Implement contracts
+- Maintain passivity as long as client is needed
+
+#### Gatway vs. Edge
+
+- Edge targets clients
+- Edge is more scalable
+- Gatway has less moving parts
+
+## Data Patterns
+
+### Single Service Databases
+
+[Single Service](./images/SingleService.png)
+
+- Solve the problem of scalability of databases and services
+- Each service implementation gets its own datastore
+- Datastore distributes with the service
+
+### Shared Service Database
+
+- All data domains exist within a single databse
+- Data distribution should be handled by the database. Handle synchronization by database itself.
+- How to isolate, use database key, schema, and so on
+- Data domains connect to single schema -> so that we can break the database up later
+
+### Command Query Responsibility Segregation
+
+- Task-based UI operations. As the write model focuses on the tasks, the read models are based on the system state after the interactions from that task.
+- Eventual consistency is a must
+- Event-based models
+
+### Asynchronous eventing
+
+- Problems: Some processes cannot be done in real time
+- Service API to trigger event
+- Event can cascade asynchronously from API
+- Event can trigger from messaging
+
+## Operational Patterns
+
+How you run your system than how you build the system.
+
+### Log Aggregation
+
+- Problem: You need to know what is going on
+- Logging must be consistent and structured across all system
+- Logging must share a taxonomy - what those key are and what key should we used when writing log
+
+#### Aggregation
+
+- Each service has its own log
+- How to arggregate, parse
+- Correlating of logs between services (with same key (taxonomy), trace id)
+- Indexing of log, for faster searching
+
+### Metrics Aggregation
+
+- Problem: Need to see what is going on with the system on the system level
+- Taxonomy
+- Standard libraries
+- Dashboards and Visualizations
+
+#### Lessons Learned
+
+- Build high-level dashboards: to see the troubleshooting where it start
+- Build detailed dashboards for each service: dig down inside a service
+- Trace alarms: Email and Slack alert
+- Embed the runbooks (manual) of how to solve problems for all alarms
+
+### Tracing
+
+- Problems: Call stacks span processes and networks
+- Tracing give you a way to recreate the call stack by injecting the trace Id
+
+#### Implementation Tracing
+
+- Use standards-based approaches
+- Inject at the entry point to your system
+- Every log message should embed the trace ID through structure logging with common taxonomy
+- Use tool to visualize
+
+### Service Discovery Operational Patterns
+
+- Problem: What service do I call?
+- Central location of all services
+- Advertise what they offer
+- Find what you need
+- Consume the URI from the discovery engine, not config!
