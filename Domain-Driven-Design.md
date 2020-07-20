@@ -27,7 +27,21 @@
 
 ## Event Storming
 
+- Used to analyze the domain/business
+- Used to develop code that is modeling the business
+- Collaborative technique with business people
+- Design a system that models the structure and flow of activies within the business
 
+### Design
 
+- Focus on a specific story
+- Model that part of the system to implement that story
+- Get feedback, come back, and extend or move to another events
 
+### Demo
 
+- Create Events, Actions
+- Entities (Person): Who do the action
+- Context: Domain and businss context
+- Context Maps: Show all the bound context in the system
+- Entity Maps: Identify classes (services/entities) -> responsibilities -> collaborators. Show all entities in system. relationships by means of event system.
