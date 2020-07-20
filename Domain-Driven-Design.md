@@ -9,15 +9,21 @@
 
 ## Orchestrated/Declarative System
 
+![Declarative](./images/Declarative-1.png)
+
 - Synchrounous Services
 - One entity tells another entity what to do
 - Have a tight relationship between services. Change one service will affect another as it communicate directly.
+
+![Declarative](./images/Declarative-2.png)
 
 ## Choreography/Reactive System
 
 - Asynchronous Services
 - Eliminates coupling relationships between downstream and upstream services
 - Also called a publish-subscribe model. Subscribers are unknown to the publishers. Use a messaging system such as - kafka, rabbitmq, zeromq
+
+![Reactive](./images/Reactive.png)
 
 ## Event Storming
 
